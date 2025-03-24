@@ -27,3 +27,6 @@
 # System files
 .DS_Store
 Thumbs.db
+
+# Small Language Model
+unsloth.Q4_K_M.gguf

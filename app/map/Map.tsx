@@ -113,26 +113,24 @@ export default function Map() {
       // California boundaries
       const californiaPolygon = L.polygon([
         [42.0095, -124.4096], // Northwest corner
-        [42.0095, -120.0000], // Northeast corner
-        [43.5000, -120.0000], // Northeast border
-        [43.5000, -119.9992], // Northeast border
-        [43.0000, -120.0000], // Northern border
-        [42.5000, -120.0000], // Northern border
-        [42.0000, -120.0000], // Northern border
-        [41.0000, -120.0000], // Northern border
-        [40.0000, -120.0000], // Northern border
-        [39.0000, -120.0000], // Northern border
-        [38.0000, -120.0000], // Northern border
-        [37.0000, -120.0000], // Northern border
-        [36.0000, -120.0000], // Northern border
-        [35.0000, -120.0000], // Northern border
-        [34.0000, -120.0000], // Northern border
-        [33.0000, -120.0000], // Northern border
-        [32.5121, -120.0000], // Northern border
-        [32.5121, -117.0000], // Southwest corner
-        [32.5121, -124.4096], // Northwest corner
-
-        
+        [42.0095, -114.0000], // Northeast corner
+        [43.5000, -114.0000], // Northeast border
+        [43.5000, -114.0000], // Northeast border
+        [43.0000, -114.0000], // Northern border
+        [42.5000, -114.0000], // Northern border
+        [42.0000, -114.0000], // Northern border
+        [41.0000, -114.0000], // Northern border
+        [40.0000, -114.0000], // Northern border
+        [39.0000, -114.0000], // Northern border
+        [38.0000, -114.0000], // Northern border
+        [37.0000, -114.0000], // Northern border
+        [36.0000, -114.0000], // Northern border
+        [35.0000, -114.0000], // Northern border
+        [34.0000, -114.0000], // Northern border
+        [33.0000, -114.0000], // Northern border
+        [30.5121, -114.0000], // Northern border
+        [30.5121, -117.0000], // Southwest corner
+        [30.5121, -124.4096], // Northwest corner
       ]);
 
       // Real California border for click validation
