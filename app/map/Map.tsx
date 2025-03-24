@@ -16,6 +16,7 @@ interface CitySuggestion {
   display_name: string;
   lat: number;
   lon: number;
+  type: string;
 }
 
 export default function Map() {
@@ -35,21 +36,27 @@ export default function Map() {
     }
 
     try {
-      // Modified search query to be more flexible
+      // Modified search query to focus on cities and states worldwide
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', California')}&limit=10&addressdetails=1&featuretype=city,town,village&countrycodes=us`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&addressdetails=1&featuretype=city,town,village,state,country`
       );
       const data = await response.json();
       
-      // Filter for cities in California and sort by relevance
-      const californiaCities = data
-        .filter((city: CitySuggestion) => {
-          // Check if the city is within California's bounds
-          return city.lat >= 32.5121 && city.lat <= 42.0095 && 
-                 city.lon >= -124.4096 && city.lon <= -114.1369;
+      // Filter and sort results
+      const locations = data
+        .filter((location: CitySuggestion) => {
+          // Check if it's a city, town, village, state, or country
+          const isCity = location.type === 'city' || 
+                        location.type === 'town' || 
+                        location.type === 'village';
+          const isState = location.type === 'state' || 
+                         location.type === 'province' || 
+                         location.type === 'region';
+          const isCountry = location.type === 'country';
+          return isCity || isState || isCountry;
         })
         .sort((a: CitySuggestion, b: CitySuggestion) => {
-          // Sort by how well the city name matches the search query
+          // Sort by how well the location name matches the search query
           const aMatch = a.display_name.toLowerCase().startsWith(query.toLowerCase());
           const bMatch = b.display_name.toLowerCase().startsWith(query.toLowerCase());
           if (aMatch && !bMatch) return -1;
@@ -57,10 +64,10 @@ export default function Map() {
           return 0;
         });
 
-      setSuggestions(californiaCities);
+      setSuggestions(locations);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Error fetching city suggestions:', error);
+      console.error('Error fetching location suggestions:', error);
     }
   };
 
@@ -84,11 +91,12 @@ export default function Map() {
     setSuggestions([]);
     setShowSuggestions(false);
 
-    // Center map on the selected city
+    // Center map on the selected location with appropriate zoom level
     if (mapInstance.current) {
-      mapInstance.current.setView([city.lat, city.lon], 10);
+      const zoomLevel = city.type === 'country' ? 5 : 10;
+      mapInstance.current.setView([city.lat, city.lon], zoomLevel);
       
-      // Simulate a click at the city's location to show weather and fire score
+      // Simulate a click at the location to show weather and fire score
       const clickEvent = {
         latlng: L.latLng(city.lat, city.lon)
       };
@@ -110,52 +118,22 @@ export default function Map() {
 
     // Initialize map if container exists
     if (mapRef.current && !mapInstance.current) {
-      // California boundaries
-      const californiaPolygon = L.polygon([
-        [42.0095, -124.4096], // Northwest corner
-        [42.0095, -114.0000], // Northeast corner
-        [43.5000, -114.0000], // Northeast border
-        [43.5000, -114.0000], // Northeast border
-        [43.0000, -114.0000], // Northern border
-        [42.5000, -114.0000], // Northern border
-        [42.0000, -114.0000], // Northern border
-        [41.0000, -114.0000], // Northern border
-        [40.0000, -114.0000], // Northern border
-        [39.0000, -114.0000], // Northern border
-        [38.0000, -114.0000], // Northern border
-        [37.0000, -114.0000], // Northern border
-        [36.0000, -114.0000], // Northern border
-        [35.0000, -114.0000], // Northern border
-        [34.0000, -114.0000], // Northern border
-        [33.0000, -114.0000], // Northern border
-        [30.5121, -114.0000], // Northern border
-        [30.5121, -117.0000], // Southwest corner
-        [30.5121, -124.4096], // Northwest corner
-      ]);
-
-      // Real California border for click validation
-      const realBorder = L.polygon([
-        [40.43137288339332, -124.38914179917593],
-        [41.97582726102573, -124.27734375000001],
-        [41.99451583602981, -119.99993527777261],
-        [39.000509457512635, -120.00091552734376],
-        [35.003003395276714, -114.63134765625001],
-        [34.27083595165, -114.13696289062501],
-        [32.74108223150125, -114.55444335937501],
-        [32.54681317351517, -117.13623046875001],
-        [33.14675022877648, -119.66308593750001],
-        [38.91668153637508, -123.77197265625001],
-        [40.43137288339332, -124.38914179917593], // Northwest corner
+      // World boundaries
+      const worldPolygon = L.polygon([
+        [90, -180], // North Pole
+        [90, 180],  // North Pole
+        [-90, 180], // South Pole
+        [-90, -180], // South Pole
       ]);
 
       mapInstance.current = L.map(mapRef.current, {
-        center: [36.7783, -119.4179], // California coordinates
-        zoom: 7.5,
+        center: [20, 0], // Center of the world (equator)
+        zoom: 2, // More zoomed out to show most of the world
         zoomControl: true,
-        maxBounds: californiaPolygon.getBounds(),
+        maxBounds: worldPolygon.getBounds(),
         maxBoundsViscosity: .3,
-        minZoom: 7,
-        maxZoom: 12,
+        minZoom: 2,
+        maxZoom: 11,
         zoomSnap: 0.5,
         zoomDelta: 0.5,
       });
@@ -184,18 +162,6 @@ export default function Map() {
       // Add click handler
       mapInstance.current.on('click', async (e) => {
         const { lat, lng } = e.latlng;
-        
-        //alert(lat + ' ' + lng);
-        //39.000509457512635 -119.99885559082033
-
-        // Check if the clicked location is within real California border
-        if (!realBorder.getBounds().contains(e.latlng)) {
-          // Remove existing popup if it exists
-          if (popupRef.current) {
-            mapInstance.current?.removeLayer(popupRef.current);
-          }
-          return;
-        }
         
         try {
           // First, get the city name using reverse geocoding
@@ -364,14 +330,14 @@ export default function Map() {
       }, 100);
     }
 
-    // Cleanup
+    // Cleanup function
     return () => {
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
       }
     };
-  }, []); // Remove suggestions and showSuggestions from dependencies
+  }, []); // Empty dependency array since we only want to initialize once
 
   return (
     <div className="relative w-full h-full" style={{ minHeight: '500px' }}>
