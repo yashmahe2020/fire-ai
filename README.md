@@ -43,6 +43,26 @@ yarn dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Backend Setup (Required for Fire Risk Scores)
+
+1. Navigate to the `api` directory:
+```bash
+cd api
+```
+
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Start the API server:
+```bash
+python server.py
+```
+The server will run on `http://localhost:8000`.
+Note: On first run, it will download the Llama 3 model (~500MB).
+
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 14, React, TypeScript
